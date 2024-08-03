@@ -12,7 +12,7 @@ import java.util.Date;
 @Entity
 @Getter
 @Setter
-public class Session extends BaseModel {
+public class SessionEntity extends BaseModel {
     private String token;
     private Date expiringAt;
     private Date loginAt;

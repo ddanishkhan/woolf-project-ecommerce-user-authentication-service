@@ -1,9 +1,13 @@
 package com.ecommerce_user_authentication.model;
 
 import jakarta.persistence.Entity;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
-public class Role extends BaseModel{
+@Getter
+@Setter
+public class RoleEntity extends BaseModel{
 
     private String name;
 
