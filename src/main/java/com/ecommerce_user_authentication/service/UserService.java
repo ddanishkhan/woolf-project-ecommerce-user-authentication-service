@@ -1,11 +1,11 @@
 package com.ecommerce_user_authentication.service;
 
 import com.ecommerce_user_authentication.dto.UserDto;
+import com.ecommerce_user_authentication.exception.UserNotFoundException;
 import com.ecommerce_user_authentication.model.RoleEntity;
 import com.ecommerce_user_authentication.model.UserEntity;
 import com.ecommerce_user_authentication.repository.RoleRepository;
 import com.ecommerce_user_authentication.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +31,7 @@ public class UserService {
 
     public UserDto addUserRoles(Long userId, List<Long> roleIds) {
 
-        UserEntity user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User not found"));
+        UserEntity user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
 
         List<RoleEntity> roles = roleRepository.findAllById(roleIds);
         user.getRoleEntities().addAll(roles);

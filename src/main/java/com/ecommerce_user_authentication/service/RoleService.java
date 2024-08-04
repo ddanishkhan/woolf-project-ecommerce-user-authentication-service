@@ -5,6 +5,8 @@ import com.ecommerce_user_authentication.model.RoleEntity;
 import com.ecommerce_user_authentication.repository.RoleRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class RoleService {
 
@@ -14,10 +16,13 @@ public class RoleService {
         this.roleRepository = roleRepository;
     }
 
-    public RoleCreatedResponse createRole(String name) {
+    public Optional<RoleCreatedResponse> createRole(String name) {
         var roleEntity = new RoleEntity();
         roleEntity.setName(name);
+        if (roleRepository.existsByName(name)){
+            return Optional.empty();
+        }
         var savedRoleEntity = roleRepository.save(roleEntity);
-        return new RoleCreatedResponse(savedRoleEntity.getName());
+        return Optional.of(new RoleCreatedResponse(savedRoleEntity.getId(), savedRoleEntity.getName()));
     }
 }
