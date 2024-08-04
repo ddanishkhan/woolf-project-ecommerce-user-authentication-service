@@ -3,6 +3,7 @@ package com.ecommerce_user_authentication.controller;
 import com.ecommerce_user_authentication.dto.UserDto;
 import com.ecommerce_user_authentication.dto.request.SetUserRolesRequest;
 import com.ecommerce_user_authentication.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,13 +24,19 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> getUserDetails(@PathVariable("id") Long userId) {
-        UserDto userDto = userService.getUserDetails(userId);
-        return ResponseEntity.ok(userDto);
+        var userDto = userService.getUserDetails(userId);
+        return userDto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/email/{email}")
+    public ResponseEntity<UserDto> getUserDetailsByEmail(@PathVariable String email) {
+        var userDto = userService.getUserDetailsByUserEmail(email);
+        return userDto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/{id}/roles")
-    public ResponseEntity<UserDto> setUserRoles(@PathVariable("id") Long userId, @RequestBody SetUserRolesRequest request) {
-        UserDto userDto = userService.setUserRoles(userId, request.roleIds());
+    public ResponseEntity<UserDto> addUserRoles(@PathVariable("id") Long userId, @RequestBody @Valid SetUserRolesRequest request) {
+        var userDto = userService.addUserRoles(userId, request.roleIds());
         return ResponseEntity.ok(userDto);
     }
 
