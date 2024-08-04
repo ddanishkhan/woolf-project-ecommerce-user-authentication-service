@@ -9,6 +9,6 @@ import java.util.Optional;
 @Repository
 public interface SessionRepository extends CrudRepository<SessionEntity, Long> {
 
-    Optional<SessionEntity> findByTokenAndEmail(String token, String email);
+    Optional<SessionEntity> findByTokenAndUser_Email(String token, String email);
 
 }

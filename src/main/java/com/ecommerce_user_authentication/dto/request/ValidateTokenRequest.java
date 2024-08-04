@@ -1,4 +1,6 @@
 package com.ecommerce_user_authentication.dto.request;
 
-public record ValidateTokenRequest (String token, String email){
+import jakarta.validation.constraints.NotEmpty;
+
+public record ValidateTokenRequest(@NotEmpty String token, @NotEmpty String email) {
 }

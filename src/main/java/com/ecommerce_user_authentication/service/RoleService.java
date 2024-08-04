@@ -3,7 +3,9 @@ package com.ecommerce_user_authentication.service;
 import com.ecommerce_user_authentication.dto.response.RoleCreatedResponse;
 import com.ecommerce_user_authentication.model.RoleEntity;
 import com.ecommerce_user_authentication.repository.RoleRepository;
+import org.springframework.stereotype.Service;
 
+@Service
 public class RoleService {
 
     private final RoleRepository roleRepository;

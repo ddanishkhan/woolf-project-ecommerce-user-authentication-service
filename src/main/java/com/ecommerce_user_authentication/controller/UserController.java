@@ -3,7 +3,6 @@ package com.ecommerce_user_authentication.controller;
 import com.ecommerce_user_authentication.dto.UserDto;
 import com.ecommerce_user_authentication.dto.request.SetUserRolesRequest;
 import com.ecommerce_user_authentication.service.UserService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

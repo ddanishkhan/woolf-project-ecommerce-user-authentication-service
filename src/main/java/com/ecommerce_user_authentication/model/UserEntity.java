@@ -2,6 +2,7 @@ package com.ecommerce_user_authentication.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -27,8 +28,7 @@ public class UserEntity extends BaseModel {
     @CreationTimestamp
     private Date createdAt;
 
-
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     private Set<RoleEntity> roleEntities = new HashSet<>();  // Move into separate table.
     /**
      * CREATE TABLE roles (
