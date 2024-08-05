@@ -15,12 +15,17 @@ public class GlobalControllerAdvice {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleRoleAlreadyExistsException(UserNotFoundException ex) {
+    @ExceptionHandler({InvalidLoginCredentialsException.class})
+    public ResponseEntity<ErrorResponse> handleUnauthorizedExceptions(Exception ex) {
+        var response = new ErrorResponse(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler({UserAlreadyExistsException.class, UserNotFoundException.class})
+    public ResponseEntity<ErrorResponse> handleCustomExceptions(Exception ex) {
         var response = new ErrorResponse(ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
-
 
 
 }

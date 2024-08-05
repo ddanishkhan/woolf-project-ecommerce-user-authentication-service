@@ -5,6 +5,7 @@ import com.ecommerce_user_authentication.dto.request.LoginRequest;
 import com.ecommerce_user_authentication.dto.request.LogoutRequest;
 import com.ecommerce_user_authentication.dto.request.SignUpRequest;
 import com.ecommerce_user_authentication.dto.request.ValidateTokenRequest;
+import com.ecommerce_user_authentication.dto.response.ErrorResponse;
 import com.ecommerce_user_authentication.model.SessionStatus;
 import com.ecommerce_user_authentication.service.AuthenticationService;
 import jakarta.validation.Valid;
@@ -29,9 +30,7 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     public ResponseEntity<UserDto> login(@RequestBody @Valid LoginRequest request) {
-        ResponseEntity<UserDto> user = authenticationService.login(request.email(), request.password());
-        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        return user;
+        return authenticationService.login(request.email(), request.password());
     }
 
     @PostMapping("/logout")
