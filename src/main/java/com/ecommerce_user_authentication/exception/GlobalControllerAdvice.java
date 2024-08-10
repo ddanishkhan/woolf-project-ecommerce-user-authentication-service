@@ -15,7 +15,7 @@ public class GlobalControllerAdvice {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
-    @ExceptionHandler({InvalidLoginCredentialsException.class})
+    @ExceptionHandler({InvalidLoginCredentialsException.class, InvalidTokenException.class})
     public ResponseEntity<ErrorResponse> handleUnauthorizedExceptions(Exception ex) {
         var response = new ErrorResponse(ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
