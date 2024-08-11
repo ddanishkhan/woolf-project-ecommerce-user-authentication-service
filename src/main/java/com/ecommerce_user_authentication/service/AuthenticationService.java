@@ -18,7 +18,9 @@ import org.springframework.boot.json.JsonParser;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -36,14 +38,22 @@ public class AuthenticationService {
     private final UserRepository userRepository;
     private final SessionRepository sessionRepository;
     private final BCryptPasswordEncoder passwordEncoder;
-    private final SecretKey key;
-    private final MacAlgorithm alg = Jwts.SIG.HS256; // HS256 algo added for JWT
+    private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
 
-    public AuthenticationService(UserRepository userRepository, SessionRepository sessionRepository, BCryptPasswordEncoder passwordEncoder) {
+    public AuthenticationService(UserRepository userRepository, SessionRepository sessionRepository, BCryptPasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
         this.passwordEncoder = passwordEncoder;
-        key = alg.key().build(); // generating the secret key
+        this.jwtService = jwtService;
+        this.authenticationManager = authenticationManager;
+    }
+
+    public UserEntity authenticate(String email, String password){
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(email, password)
+        );
+        return userRepository.findOneByEmail(email).orElseThrow();
     }
 
     public ResponseEntity<UserDto> login(String email, String inputPassword) {
@@ -51,12 +61,13 @@ public class AuthenticationService {
         if (userOptional.isEmpty()) {
             throw new InvalidLoginCredentialsException("User does not exist.");
         }
-        UserEntity userEntity = userOptional.get();
+        UserEntity userEntity = authenticate(email, inputPassword);
 
         if (!passwordEncoder.matches(inputPassword, userEntity.getPassword())) {
             throw new InvalidLoginCredentialsException("Invalid password.");
         }
-        String token = generateJwt(userEntity);
+
+        String token = jwtService.generateToken(userEntity);
         SessionEntity session = new SessionEntity();
         session.setSessionStatus(SessionStatus.ACTIVE);
         session.setToken(token);
@@ -68,20 +79,6 @@ public class AuthenticationService {
         responseHeaders.setBearerAuth(token);
         responseHeaders.set(HttpHeaders.SET_COOKIE, "auth-token=\"" + token + "\"");
         return new ResponseEntity<>(userDto, responseHeaders, HttpStatus.OK);
-    }
-
-    private String generateJwt(UserEntity user) {
-        //start adding the claims
-        Map<String, Object> jsonForJWT = new HashMap<>();
-        jsonForJWT.put("email", user.getEmail());
-        jsonForJWT.put("roles", user.getRoleEntities());
-        jsonForJWT.put("createdAt", new Date());
-        jsonForJWT.put("expiryAt", Date.from(ZonedDateTime.now().plusDays(1).toInstant()));
-
-        return Jwts.builder()
-                .claims(jsonForJWT) // added the claims
-                .signWith(key, alg) // added the algo and key
-                .compact(); //building the token
     }
 
     public void logout(String token, String email) {
@@ -96,14 +93,18 @@ public class AuthenticationService {
     }
 
     public Optional<UserDto> signUp(String email, String password) {
+        var savedUser = signUpV2(email, password);
+        return Optional.of(UserDto.from(savedUser));
+    }
+
+    public UserEntity signUpV2(String email, String password) {
         var user = new UserEntity();
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
         if (userRepository.findOneByEmail(email).isPresent()) {
             throw new UserAlreadyExistsException("Email already registered.");
         }
-        UserEntity savedUser = userRepository.save(user);
-        return Optional.of(UserDto.from(savedUser));
+        return userRepository.save(user);
     }
 
     public SessionStatus validate(String token, String email) {
@@ -132,7 +133,7 @@ public class AuthenticationService {
 
     void validateJwt(String token) {
         JwtParser jwtParser = Jwts.parser()
-                .verifyWith(key)
+                .verifyWith(jwtService.getSignInKey())
                 .build();
         try {
             jwtParser.parse(token);
