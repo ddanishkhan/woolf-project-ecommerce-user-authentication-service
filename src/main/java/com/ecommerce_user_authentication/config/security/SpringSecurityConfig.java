@@ -1,5 +1,6 @@
-package com.ecommerce_user_authentication.config;
+package com.ecommerce_user_authentication.config.security;
 
+import com.ecommerce_user_authentication.config.JwtAuthenticationFilter;
 import com.ecommerce_user_authentication.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,9 +13,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -23,9 +27,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-@Configuration
-@EnableWebSecurity
-@EnableMethodSecurity
+//@Configuration
+//@EnableWebSecurity
+//@EnableMethodSecurity
 public class SpringSecurityConfig {
 
     private final UserRepository userRepository;
@@ -36,10 +40,23 @@ public class SpringSecurityConfig {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
+//    @Bean
+//    UserDetailsService userDetailsService() {
+//        return username -> userRepository.findOneByEmail(username)
+//                .orElseThrow(() -> new UsernameNotFoundException("User not found."));
+//    }
+
     @Bean
-    UserDetailsService userDetailsService() {
-        return username -> userRepository.findOneByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found."));
+    public UserDetailsService userDetailsService() {
+        // @formatter:off
+        UserDetails user = User.builder()
+                .username("admin")
+                .password("password")
+                .passwordEncoder((pass) -> bCryptPasswordEncoder().encode(pass))
+                .roles("ADMIN").build();
+        // @formatter:on
+
+        return new InMemoryUserDetailsManager(user);
     }
 
     @Bean
