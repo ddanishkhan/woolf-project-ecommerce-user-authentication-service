@@ -6,6 +6,7 @@ import com.ecommerce_user_authentication.model.UserEntity;
 import com.ecommerce_user_authentication.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +27,7 @@ public class UserController {
     }
 
     @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserEntity> authenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserEntity currentUser = (UserEntity) authentication.getPrincipal();
@@ -34,18 +36,21 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<UserDto> getUserDetails(@PathVariable("id") Long userId) {
         var userDto = userService.getUserDetails(userId);
         return userDto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/email/{email}")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<UserDto> getUserDetailsByEmail(@PathVariable String email) {
         var userDto = userService.getUserDetailsByUserEmail(email);
         return userDto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/{id}/role")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<UserDto> setUserRole(@PathVariable("id") Long userId, @RequestBody @Valid SetUserRolesRequest request) {
         var userDto = userService.setUserRole(userId, request.role());
         return ResponseEntity.ok(userDto);

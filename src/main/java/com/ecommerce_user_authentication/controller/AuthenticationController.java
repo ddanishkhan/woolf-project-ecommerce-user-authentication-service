@@ -12,6 +12,7 @@ import com.ecommerce_user_authentication.service.JwtService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,6 +50,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/logout/{email}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> logout(@PathVariable String email, @RequestHeader("token") String token) {
         authenticationService.logout(token, email);
         return ResponseEntity.status(HttpStatus.RESET_CONTENT).build();
