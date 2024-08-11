@@ -1,6 +1,7 @@
 package com.ecommerce_user_authentication.repository;
 
 import com.ecommerce_user_authentication.model.RoleEntity;
+import com.ecommerce_user_authentication.model.RoleEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,7 +13,7 @@ import java.util.Set;
 public interface RoleRepository extends JpaRepository<RoleEntity, Long> {
 
     Set<RoleEntity> findAllByIdIn(List<Long> roleIds);
-    Optional<RoleEntity> findByName(String name);
-    Boolean existsByName(String name);
+    Optional<RoleEntity> findByName(RoleEnum name);
+    Boolean existsByName(RoleEnum name);
 
 }

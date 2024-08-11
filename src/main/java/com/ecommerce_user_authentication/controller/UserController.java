@@ -27,7 +27,6 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<UserEntity> authenticatedUser() {
-        System.out.println("Here");
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserEntity currentUser = (UserEntity) authentication.getPrincipal();
         System.out.println(currentUser);
@@ -46,9 +45,9 @@ public class UserController {
         return userDto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/{id}/roles")
-    public ResponseEntity<UserDto> addUserRoles(@PathVariable("id") Long userId, @RequestBody @Valid SetUserRolesRequest request) {
-        var userDto = userService.addUserRoles(userId, request.roleIds());
+    @PostMapping("/{id}/role")
+    public ResponseEntity<UserDto> setUserRole(@PathVariable("id") Long userId, @RequestBody @Valid SetUserRolesRequest request) {
+        var userDto = userService.setUserRole(userId, request.role());
         return ResponseEntity.ok(userDto);
     }
 

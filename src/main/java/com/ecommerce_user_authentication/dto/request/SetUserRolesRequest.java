@@ -1,8 +1,7 @@
 package com.ecommerce_user_authentication.dto.request;
 
+import com.ecommerce_user_authentication.model.RoleEnum;
 import jakarta.validation.constraints.NotNull;
 
-import java.util.List;
-
-public record SetUserRolesRequest(@NotNull List<Long> roleIds) {
+public record SetUserRolesRequest(@NotNull RoleEnum role) {
 }

@@ -2,16 +2,18 @@ package com.ecommerce_user_authentication.service;
 
 import com.ecommerce_user_authentication.dto.UserDto;
 import com.ecommerce_user_authentication.exception.InvalidLoginCredentialsException;
+import com.ecommerce_user_authentication.exception.InvalidRoleException;
 import com.ecommerce_user_authentication.exception.InvalidTokenException;
 import com.ecommerce_user_authentication.exception.UserAlreadyExistsException;
+import com.ecommerce_user_authentication.model.RoleEnum;
 import com.ecommerce_user_authentication.model.SessionEntity;
 import com.ecommerce_user_authentication.model.SessionStatus;
 import com.ecommerce_user_authentication.model.UserEntity;
+import com.ecommerce_user_authentication.repository.RoleRepository;
 import com.ecommerce_user_authentication.repository.SessionRepository;
 import com.ecommerce_user_authentication.repository.UserRepository;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.MacAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.boot.json.JsonParser;
@@ -23,11 +25,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.stereotype.Service;
 
-import javax.crypto.SecretKey;
-import java.time.ZonedDateTime;
 import java.util.Base64;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -37,13 +36,15 @@ public class AuthenticationService {
 
     private final UserRepository userRepository;
     private final SessionRepository sessionRepository;
+    private final RoleRepository roleRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
-    public AuthenticationService(UserRepository userRepository, SessionRepository sessionRepository, BCryptPasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager) {
+    public AuthenticationService(UserRepository userRepository, SessionRepository sessionRepository, RoleRepository roleRepository, BCryptPasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
+        this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
@@ -74,7 +75,7 @@ public class AuthenticationService {
         session.setUser(userEntity);
         sessionRepository.save(session);
 
-        UserDto userDto = new UserDto(email, userEntity.getRoleEntities());
+        UserDto userDto = new UserDto(email, userEntity.getRoleEntity());
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.setBearerAuth(token);
         responseHeaders.set(HttpHeaders.SET_COOKIE, "auth-token=\"" + token + "\"");
@@ -98,12 +99,16 @@ public class AuthenticationService {
     }
 
     public UserEntity signUpV2(String email, String password) {
-        var user = new UserEntity();
-        user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(password));
         if (userRepository.findOneByEmail(email).isPresent()) {
             throw new UserAlreadyExistsException("Email already registered.");
         }
+        var roleEntity = roleRepository.findByName(RoleEnum.USER)
+                .orElseThrow(()-> new InvalidRoleException("Role does not exist."));
+
+        var user = new UserEntity();
+        user.setEmail(email);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setRoleEntity(roleEntity);
         return userRepository.save(user);
     }
 

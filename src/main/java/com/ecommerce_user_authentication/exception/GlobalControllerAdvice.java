@@ -28,7 +28,7 @@ public class GlobalControllerAdvice {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
-    @ExceptionHandler({UserAlreadyExistsException.class, UserNotFoundException.class})
+    @ExceptionHandler({UserAlreadyExistsException.class, UserNotFoundException.class, InvalidRoleException.class})
     public ResponseEntity<ErrorResponse> handleCustomExceptions(Exception ex) {
         var response = new ErrorResponse(ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);

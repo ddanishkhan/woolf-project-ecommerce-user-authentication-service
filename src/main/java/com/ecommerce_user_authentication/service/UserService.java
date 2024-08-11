@@ -1,15 +1,15 @@
 package com.ecommerce_user_authentication.service;
 
 import com.ecommerce_user_authentication.dto.UserDto;
+import com.ecommerce_user_authentication.exception.InvalidRoleException;
 import com.ecommerce_user_authentication.exception.UserNotFoundException;
-import com.ecommerce_user_authentication.model.RoleEntity;
+import com.ecommerce_user_authentication.model.RoleEnum;
 import com.ecommerce_user_authentication.model.UserEntity;
 import com.ecommerce_user_authentication.repository.RoleRepository;
 import com.ecommerce_user_authentication.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -29,15 +29,11 @@ public class UserService {
         return userEntity.map(UserDto::from);
     }
 
-    public UserDto addUserRoles(Long userId, List<Long> roleIds) {
-
+    public UserDto setUserRole(Long userId, RoleEnum role) {
         UserEntity user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
-
-        List<RoleEntity> roles = roleRepository.findAllById(roleIds);
-        user.getRoleEntities().addAll(roles);
-
+        var roleEntity = roleRepository.findByName(role).orElseThrow(InvalidRoleException::new);
+        user.setRoleEntity(roleEntity);
         var savedEntity = userRepository.save(user);
-
         return UserDto.from(savedEntity);
     }
 }
