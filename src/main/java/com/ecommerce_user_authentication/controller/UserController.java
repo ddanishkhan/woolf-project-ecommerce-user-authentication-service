@@ -5,7 +5,6 @@ import com.ecommerce_user_authentication.dto.request.SetUserRolesRequest;
 import com.ecommerce_user_authentication.model.UserEntity;
 import com.ecommerce_user_authentication.service.UserService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -31,12 +30,9 @@ public class UserController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserEntity> authenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserEntity currentUser = null;
-        if (authentication.getPrincipal() instanceof UserEntity user){
-            return ResponseEntity.ok(user);
-        }
-        System.out.println("ERROR: security context did not find any user instance.");
-        return ResponseEntity.notFound().build();
+        UserEntity currentUser = (UserEntity) authentication.getPrincipal();
+        System.out.println(currentUser);
+        return ResponseEntity.ok(currentUser);
     }
 
     @GetMapping("/{id}")
