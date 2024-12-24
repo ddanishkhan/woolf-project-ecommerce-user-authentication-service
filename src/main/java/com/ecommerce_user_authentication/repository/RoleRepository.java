@@ -15,5 +15,5 @@ public interface RoleRepository extends JpaRepository<RoleEntity, Long> {
     Set<RoleEntity> findAllByIdIn(List<Long> roleIds);
     Optional<RoleEntity> findByName(RoleEnum name);
     Boolean existsByName(RoleEnum name);
-
+    Set<RoleEntity> findByNameIn(Set<RoleEnum> selectedRoles);
 }

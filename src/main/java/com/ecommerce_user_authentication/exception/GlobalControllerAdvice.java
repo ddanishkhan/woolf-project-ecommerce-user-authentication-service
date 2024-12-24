@@ -1,6 +1,7 @@
 package com.ecommerce_user_authentication.exception;
 
 import com.ecommerce_user_authentication.dto.response.ErrorResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
@@ -13,23 +14,29 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
 
+@Slf4j
 @ControllerAdvice
 public class GlobalControllerAdvice {
 
+    static final String DESCRIPTION = "description";
+
     @ExceptionHandler(RoleAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleRoleAlreadyExistsException(RoleAlreadyExistsException ex) {
+        logException(ex);
         ErrorResponse response = new ErrorResponse("Role already exists: " + ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
     @ExceptionHandler({InvalidLoginCredentialsException.class, InvalidTokenException.class})
-    public ResponseEntity<ErrorResponse> handleUnauthorizedExceptions(Exception ex) {
+    public ResponseEntity<ErrorResponse> handleUnauthorizedExceptions(RuntimeException ex) {
+        logException(ex);
         var response = new ErrorResponse(ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
     @ExceptionHandler({UserAlreadyExistsException.class, UserNotFoundException.class, InvalidRoleException.class})
-    public ResponseEntity<ErrorResponse> handleCustomExceptions(Exception ex) {
+    public ResponseEntity<ErrorResponse> handleCustomExceptions(RuntimeException ex) {
+        logException(ex);
         var response = new ErrorResponse(ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
@@ -37,47 +44,50 @@ public class GlobalControllerAdvice {
     @ExceptionHandler({NullPointerException.class})
     public ResponseEntity<ErrorResponse> handleNPE(NullPointerException ex) {
         var response = new ErrorResponse("Internal server error.");
-        System.err.println(ex);
+        logException(ex);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    private void logException(RuntimeException ex) {
+        log.error("Exception {}", ex.getMessage(), ex);
     }
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleSecurityException(Exception exception) {
         ProblemDetail errorDetail = null;
 
-        // send this stack trace to an observability tool
-        exception.printStackTrace();
+        log.error("SecurityException {}", exception.getMessage(), exception);
 
         if (exception instanceof BadCredentialsException) {
             errorDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(401), exception.getMessage());
-            errorDetail.setProperty("description", "The username or password is incorrect");
+            errorDetail.setProperty(DESCRIPTION, "The username or password is incorrect");
 
             return errorDetail;
         }
 
         if (exception instanceof AccountStatusException) {
             errorDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(403), exception.getMessage());
-            errorDetail.setProperty("description", "The account is locked");
+            errorDetail.setProperty(DESCRIPTION, "The account is locked");
         }
 
         if (exception instanceof AccessDeniedException) {
             errorDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(403), exception.getMessage());
-            errorDetail.setProperty("description", "You are not authorized to access this resource");
+            errorDetail.setProperty(DESCRIPTION, "You are not authorized to access this resource");
         }
 
         if (exception instanceof SignatureException) {
             errorDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(403), exception.getMessage());
-            errorDetail.setProperty("description", "The JWT signature is invalid");
+            errorDetail.setProperty(DESCRIPTION, "The JWT signature is invalid");
         }
 
         if (exception instanceof ExpiredJwtException) {
             errorDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(403), exception.getMessage());
-            errorDetail.setProperty("description", "The JWT token has expired");
+            errorDetail.setProperty(DESCRIPTION, "The JWT token has expired");
         }
 
         if (errorDetail == null) {
             errorDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(500), exception.getMessage());
-            errorDetail.setProperty("description", "Unknown internal server error.");
+            errorDetail.setProperty(DESCRIPTION, "Unknown internal server error.");
         }
 
         return errorDetail;

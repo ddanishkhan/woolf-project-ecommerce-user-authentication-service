@@ -1,15 +1,15 @@
 package com.ecommerce_user_authentication.controller;
 
-import com.ecommerce_user_authentication.dto.UserDto;
 import com.ecommerce_user_authentication.dto.request.LoginRequest;
 import com.ecommerce_user_authentication.dto.request.SignUpRequest;
 import com.ecommerce_user_authentication.dto.request.ValidateTokenRequest;
-import com.ecommerce_user_authentication.dto.response.LoginResponse;
+import com.ecommerce_user_authentication.dto.response.AuthToken;
 import com.ecommerce_user_authentication.dto.response.SessionStatusResponse;
-import com.ecommerce_user_authentication.model.UserEntity;
+import com.ecommerce_user_authentication.dto.response.UserInfoResponse;
 import com.ecommerce_user_authentication.service.AuthenticationService;
 import com.ecommerce_user_authentication.service.JwtService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,26 +27,16 @@ import java.util.Optional;
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
-    private final JwtService jwtService;
 
+    @Autowired
     public AuthenticationController(AuthenticationService authenticationService, JwtService jwtService) {
         this.authenticationService = authenticationService;
-        this.jwtService = jwtService;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserDto> login(@RequestBody @Valid LoginRequest request) {
-        return authenticationService.login(request.email(), request.password());
-    }
-
-    @PostMapping("/v2/login")
-    public ResponseEntity<LoginResponse> loginV2(@RequestBody @Valid LoginRequest request) {
-        var authenticatedUser = authenticationService.authenticate(request.email(), request.password());
-        String jwtToken = jwtService.generateToken(authenticatedUser);
-
-        LoginResponse loginResponse = new LoginResponse(jwtToken, jwtService.getExpirationTime());
-
-        return ResponseEntity.ok(loginResponse);
+    public ResponseEntity<AuthToken> login(@RequestBody @Valid LoginRequest request) {
+        final String token = authenticationService.login(request.email(), request.password());
+        return ResponseEntity.ok(new AuthToken(token));
     }
 
     @PostMapping("/logout/{email}")
@@ -57,15 +47,9 @@ public class AuthenticationController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<UserDto> signUp(@RequestBody @Valid SignUpRequest request) {
-        Optional<UserDto> userDto = authenticationService.signUp(request.email(), request.password());
+    public ResponseEntity<UserInfoResponse> signUp(@RequestBody @Valid SignUpRequest request) {
+        Optional<UserInfoResponse> userDto = authenticationService.signUp(request.email(), request.password());
         return userDto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().build());
-    }
-
-    @PostMapping("/v2/signup")
-    public ResponseEntity<UserEntity> signUpV2(@RequestBody @Valid SignUpRequest request) {
-        var user = authenticationService.signUpV2(request.email(), request.password());
-        return ResponseEntity.ok(user);
     }
 
     @PostMapping("/validate")

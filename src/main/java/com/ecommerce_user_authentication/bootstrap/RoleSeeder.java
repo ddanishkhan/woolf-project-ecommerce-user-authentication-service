@@ -8,7 +8,6 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
-import java.util.Optional;
 
 @Component
 public class RoleSeeder implements ApplicationListener<ContextRefreshedEvent> {
@@ -32,16 +31,11 @@ public class RoleSeeder implements ApplicationListener<ContextRefreshedEvent> {
         );
 
         for (RoleEnum roleName : roleNames) {
-            Optional<RoleEntity> optionalRole = roleRepository.findByName(roleName);
-
-            optionalRole.ifPresentOrElse(System.out::println, () -> {
-                RoleEntity roleToCreate = new RoleEntity();
-
-                roleToCreate.setName(roleName);
-                roleToCreate.setDescription(roleDescriptionMap.get(roleName));
-
+            boolean isRolePresent = roleRepository.existsByName(roleName);
+            if (!isRolePresent) {
+                RoleEntity roleToCreate = new RoleEntity(roleName, roleDescriptionMap.get(roleName));
                 roleRepository.save(roleToCreate);
-            });
+            }
         }
     }
 }

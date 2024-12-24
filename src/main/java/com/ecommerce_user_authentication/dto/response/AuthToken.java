@@ -1,4 +1,4 @@
 package com.ecommerce_user_authentication.dto.response;
 
-public record CreateUserResponse (String email) {
+public record AuthToken(String token) {
 }
