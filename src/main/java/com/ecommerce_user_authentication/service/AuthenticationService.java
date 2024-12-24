@@ -85,6 +85,15 @@ public class AuthenticationService {
         return Optional.of(UserInfoResponse.from(savedUser));
     }
 
+    public void changePassword(String email, String password, String newPassword){
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(email, password)
+        );
+        var userEntity = userRepository.findOneByEmail(email).orElseThrow();
+        userEntity.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(userEntity);
+    }
+
     public SessionStatus validate(final String token, final String email) {
         jwtService.validJWT(token);
         Date expiryAt = jwtService.extractExpiration(token);

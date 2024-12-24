@@ -1,5 +1,6 @@
 package com.ecommerce_user_authentication.controller;
 
+import com.ecommerce_user_authentication.dto.request.ChangePasswordRequest;
 import com.ecommerce_user_authentication.dto.request.LoginRequest;
 import com.ecommerce_user_authentication.dto.request.SignUpRequest;
 import com.ecommerce_user_authentication.dto.request.ValidateTokenRequest;
@@ -50,6 +51,12 @@ public class AuthenticationController {
     public ResponseEntity<UserInfoResponse> signUp(@RequestBody @Valid SignUpRequest request) {
         Optional<UserInfoResponse> userDto = authenticationService.signUp(request.email(), request.password());
         return userDto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().build());
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Void> changePassword(@RequestBody @Valid ChangePasswordRequest request) {
+        authenticationService.changePassword(request.email(), request.password(), request.newPassword());
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @PostMapping("/validate")

@@ -30,6 +30,7 @@ public class UserEntity extends BaseModel {
     @Column(unique = true, nullable = false)
     private String email;
 
+    @Setter
     @NonNull
     @Column(nullable = false)
     private String password;
